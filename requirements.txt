@@ -2,3 +2,4 @@ cs50
 Flask
 Flask-Session
 requests
+API_KEY=pk_02a3ca09bcb74a1b9169693968d0290c
