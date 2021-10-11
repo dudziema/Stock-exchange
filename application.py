@@ -1,3 +1,5 @@
+
+
 import os
 
 from cs50 import SQL
@@ -6,6 +8,8 @@ from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from werkzeug.security import check_password_hash, generate_password_hash
+from datetime import datetime
+from decimal import Decimal
 
 from helpers import apology, login_required, lookup, usd
 
@@ -53,7 +57,49 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+
+    # User reached route via POST (as by submitting a form via POST)
+    if request.method == "POST":
+        
+
+        # Get from user symbol and quantity of shares which want to buy
+        symbol =request.form.get("symbol")
+        shares =int(request.form.get("shares"))
+        
+        # Check current price of stock
+        get_data = lookup(symbol)
+        
+
+        # Show apology if data provided is incorrect.
+        if get_data == None:
+            return apology("Stock not found. Please, provide correct symbol.")
+        if shares <= 0 or None:
+            return apology("Amount equal or less than zero. Provide positive quantity of shares.")
+
+
+        # Get data from user
+        idUser= session["user_id"]
+        user_name= db.execute("SELECT username FROM users WHERE id=?", idUser)[0]["username"]
+        cash = db.execute("SELECT cash FROM users WHERE id= ? LIMIT 1", idUser)[0]["cash"]
+        
+        
+        # take data from transaction
+        share_price= get_data["price"]
+        total_price= share_price * shares
+        company= get_data["name"]
+        
+
+        # Check if user has enough cash
+        if cash < total_price:
+            return apology("You don't have enough money.")
+        else:
+            now= datetime.now()
+            date_time= now.strftime("%d/%m/%Y %H:%M:%S")
+            new_cash= cash- total_price
+            insert_new_line= db.execute("INSERT INTO stockbuy (id_user, username, symbol, company, shares, price, date, total) VALUES(?,?,?,?,?,?,?,?)",idUser, user_name, symbol, company,shares, share_price, date_time, total_price)
+            update_cash= db.execute("UPDATE users SET cash= ? WHERE id=?", new_cash, idUser)
+            return redirect ("/index")
+    return render_template("buy.html")
 
 
 @app.route("/history")
@@ -61,6 +107,7 @@ def buy():
 def history():
     """Show history of transactions"""
     return apology("TODO")
+
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -114,7 +161,15 @@ def logout():
 @login_required
 def quote():
     """Get stock quote."""
-    return apology("TODO")
+    if request.method =="POST":
+        symbol = request.form.get("symbol")
+        get_data = lookup(symbol)
+        if get_data != None:
+            return render_template("quoted.html", company= get_data["name"], price= usd(get_data["price"]))
+        else:
+            return render_template(("quote.html"), not_found= "Stock not found. Please, provide correct symbol.")
+
+    return render_template(("quote.html"), not_found="")
 
 
 @app.route("/register", methods=["GET", "POST"])
