@@ -1,4 +1,8 @@
+
+
 import os
+import sys
+
 from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
@@ -57,8 +61,8 @@ def index():
         get_data=lookup(symbol["symbol"])
         price= get_data["price"]
         share_quantity= db.execute("SELECT SUM(shares) FROM stockbuy WHERE id_user=? AND symbol=? GROUP BY symbol", idUser, symbol["symbol"])
-        total= price* shares["share"]
-    return render_template("index.html", shares= symbols)
+        total= price* share_quantity[0]["SUM(shares)"]
+        return render_template("index.html", shares= symbols)
 
 
 
