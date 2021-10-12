@@ -1,6 +1,7 @@
 
 
 import os
+import sys
 
 from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
@@ -49,12 +50,21 @@ if not os.environ.get("API_KEY"):
 @app.route("/index")
 @login_required
 def index():
-    """Show portfolio of stocks"""
-    
 
-    return render_template("index.html")
-    
-    
+    # Get user details
+    idUser= session["user_id"]
+    shares = db.execute("SELECT * FROM stockbuy WHERE id_user=? GROUP BY symbol", idUser)[0]["shares"]
+    symbols= db.execute("SELECT symbol FROM stockbuy WHERE id_user=? GROUP BY symbol", idUser)
+
+    for symbol in symbols:
+
+        get_data=lookup(symbol["symbol"])
+        price= get_data["price"]
+        share_quantity= db.execute("SELECT SUM(shares) FROM stockbuy WHERE id_user=? AND symbol=? GROUP BY symbol", idUser, symbol["symbol"])
+        total= price* shares["share"]
+    return render_template("index.html", shares= symbols)
+
+
 
 @app.route("/buy", methods=["GET", "POST"])
 @login_required
