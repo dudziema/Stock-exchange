@@ -1,5 +1,3 @@
-
-
 import os
 import sys
 
@@ -53,16 +51,18 @@ def index():
 
     # Get user details
     idUser= session["user_id"]
-    shares = db.execute("SELECT * FROM stockbuy WHERE id_user=? GROUP BY symbol", idUser)[0]["shares"]
-    symbols= db.execute("SELECT symbol FROM stockbuy WHERE id_user=? GROUP BY symbol", idUser)
-
-    for symbol in symbols:
-
-        get_data=lookup(symbol["symbol"])
-        price= get_data["price"]
-        share_quantity= db.execute("SELECT SUM(shares) FROM stockbuy WHERE id_user=? AND symbol=? GROUP BY symbol", idUser, symbol["symbol"])
-        total= price* share_quantity[0]["SUM(shares)"]
-        return render_template("index.html", shares= symbols)
+    
+    # Get share details
+    shares = db.execute("SELECT symbol, company, SUM(shares) AS sum FROM stockbuy WHERE id_user=? GROUP BY symbol", idUser)
+    
+    # Add to shares current price and total value all owned shares by user
+    for share in shares:
+        api_data= lookup(share["symbol"])
+        share["price"] = api_data["price"]
+        share["total"] = api_data["price"] * share["sum"]
+        
+    # Add to template details about owned shares
+    return render_template("index.html", shares=shares)
 
 
 
