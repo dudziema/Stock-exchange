@@ -251,7 +251,39 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return render_template("sell.html")
+    # Get user details
+    idUser= session["user_id"]
+
+    # Get all symbols in wallet
+    symbols= db.execute("SELECT symbol FROM stockbuy WHERE id_user=? GROUP BY symbol", idUser)
+    shares = db.execute("SELECT symbol, company, SUM(shares) AS sum FROM stockbuy WHERE id_user=? GROUP BY symbol", idUser)
+
+    # Sell transaction
+    if request.method == "POST":
+
+        # Get from user symbol and quantity of shares which want to sell
+        symbol_sold =request.form.get("symbol")
+        shares_sold =int(request.form.get("shares"))
+
+        # Return apology message if input from user is incorrect
+        if(symbol_sold == None):
+            return apology("Please select symbol of share to sell")
+        
+        # Check how many shares of choosed by user company is in wallet
+        quantity_max= int(db.execute("SELECT SUM(shares) AS sum FROM stockbuy WHERE id_user= ? AND symbol= ? GROUP BY symbol",idUser, symbol_sold)[0]["sum"])
+
+        # Return apology if out of stock or incorrect input
+        if (shares_sold > quantity_max or shares_sold <= 0):
+            return apology("Please, provide correct number of shares to sell.")
+
+
+        #if symbol_sold in symbols["symbol"] or shares_sold <= quantity["sum"] or shares_sold > 0:
+         #   return redirect("/index.html")
+      #  else:
+       #     return apology("You don't have share in wallet or you didn't provide which share you want to sell.")
+
+
+    return render_template("sell.html", symbols=symbols)
 
 
 def errorhandler(e):
