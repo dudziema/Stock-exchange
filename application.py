@@ -69,10 +69,10 @@ def index():
     last_share = {}
     last_share["total"] = usd(cash_value)
     last_share["symbol"] = "CASH"
-    
+
     total_sum += cash_value
     total_sum= usd(total_sum)
-    
+
 
     shares.append(last_share)
     shares.append({"total":total_sum})
@@ -251,7 +251,7 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    return render_template("sell.html")
 
 
 def errorhandler(e):
