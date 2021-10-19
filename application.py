@@ -253,6 +253,7 @@ def sell():
     """Sell shares of stock"""
     # Get user details
     idUser= session["user_id"]
+    user_name= db.execute("SELECT username FROM users WHERE id=?", idUser)[0]["username"]
 
     # Get all symbols in wallet
     symbols= db.execute("SELECT symbol FROM stockbuy WHERE id_user=? GROUP BY symbol", idUser)
@@ -264,6 +265,14 @@ def sell():
         # Get from user symbol and quantity of shares which want to sell
         symbol_sold =request.form.get("symbol")
         shares_sold =int(request.form.get("shares"))
+        shares_update= shares_sold * -1
+        
+        
+        # Get from API data about current price of sell and name of company
+        API_data = lookup(symbol_sold)
+        share_price= API_data["price"]
+        total_price= share_price * shares_sold
+        company = API_data["name"]
 
         # Return apology message if input from user is incorrect
         if(symbol_sold == None):
@@ -275,14 +284,14 @@ def sell():
         # Return apology if out of stock or incorrect input
         if (shares_sold > quantity_max or shares_sold <= 0):
             return apology("Please, provide correct number of shares to sell.")
-
-
-        #if symbol_sold in symbols["symbol"] or shares_sold <= quantity["sum"] or shares_sold > 0:
-         #   return redirect("/index.html")
-      #  else:
-       #     return apology("You don't have share in wallet or you didn't provide which share you want to sell.")
-
-
+        else:
+            now= datetime.now()
+            date_time= now.strftime("%d/%m/%Y %H:%M:%S")
+            cash= db.execute("SELECT cash FROM users WHERE id= ? LIMIT 1", idUser)[0]["cash"]
+            new_cash= cash + total_price
+            insert_new_line= db.execute("INSERT INTO stockbuy (id_user, username, symbol, company, shares, price, date, total) VALUES(?,?,?,?,?,?,?,?)",idUser, user_name, symbol_sold, company,shares_update, share_price, date_time, total_price)
+            update_cash= db.execute("UPDATE users SET cash= ? WHERE id=?", new_cash, idUser)
+            return redirect ("/index")
     return render_template("sell.html", symbols=symbols)
 
 
