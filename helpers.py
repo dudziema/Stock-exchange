@@ -62,3 +62,12 @@ def lookup(symbol):
 def usd(value):
     """Format value as USD."""
     return f"${value:,.2f}"
+
+def check_shares(shares_check):
+    try: 
+        int(shares_check)
+        return True
+    except ValueError:
+        return False
+    except Exception:
+        return False
