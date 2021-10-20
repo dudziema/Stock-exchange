@@ -1,1 +1,4 @@
-
+CREATE TABLE users (id INTEGER, username TEXT NOT NULL, hash TEXT NOT NULL, cash NUMERIC NOT NULL DEFAULT 10000.00, PRIMARY KEY(id));
+CREATE UNIQUE INDEX username ON users (username);
+CREATE TABLE stockbuy (id_buy INTEGER PRIMARY KEY AUTOINCREMENT, id_user INTEGER, username TEXT NOT NULL, symbol TEXT NOT NULL, company TEXT NOT NULL, shares INTEGER, price DECIMAL, date SMALLDATETIME, total DECIMAL);
+CREATE TABLE sqlite_sequence(name,seq);
